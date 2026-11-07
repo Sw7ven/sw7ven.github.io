@@ -4,280 +4,234 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>İyi Ki Doğdun!</title>
-  <!-- Canvas Confetti Library -->
+  
+  <!-- Three.js Library & Confetti -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg-color: #0d0f17;
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --accent-color: #ff477e;
-      --gold-color: #ffb703;
-      --text-color: #ffffff;
-      --subtext-color: #a0a5c0;
+      --accent: #ff477e;
+      --gold: #ffb703;
+      --bg: #070913;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    body {
-      background: radial-gradient(circle at center, #1a1c2e 0%, #0d0f17 100%);
-      color: var(--text-color);
-      min-height: 100vh;
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: #fff;
+    }
+
+    /* 3D Canvas Kaplaması */
+    #webgl-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* UI Katmanı */
+    .ui-layer {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow-x: hidden;
+      padding: 40px 20px;
+      pointer-events: none;
     }
 
-    .container {
-      max-width: 600px;
-      width: 100%;
+    .interactive {
+      pointer-events: auto;
+    }
+
+    header {
       text-align: center;
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(13, 15, 23, 0.5);
+      backdrop-filter: blur(12px);
+      padding: 20px 32px;
       border-radius: 24px;
-      padding: 40px 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
 
     h1 {
       font-size: 2.2rem;
       font-weight: 800;
-      background: linear-gradient(45deg, #ff477e, #ffaa00);
+      background: linear-gradient(135deg, #ff477e 0%, #ffbe0b 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
     }
 
-    p.subtitle {
-      color: var(--subtext-color);
-      font-size: 1.05rem;
-      margin-bottom: 30px;
+    p.sub {
+      color: #94a3b8;
+      font-size: 0.95rem;
     }
 
-    /* Geri Sayım Kartları */
-    .countdown-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 35px;
+    /* Geri Sayım Şeridi */
+    .countdown-bar {
+      display: flex;
+      gap: 16px;
+      margin-top: 14px;
+      justify-content: center;
     }
 
     .time-box {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 16px 8px;
-      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 14px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.05);
+      min-width: 65px;
     }
 
-    .time-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--gold-color);
+    .time-box .num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--gold);
       display: block;
     }
 
-    .time-label {
-      font-size: 0.75rem;
-      color: var(--subtext-color);
+    .time-box .lbl {
+      font-size: 0.65rem;
+      color: #64748b;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
 
-    /* 2D/3D Pasta & Mum Animasyonu */
-    .cake-wrapper {
-      position: relative;
-      width: 200px;
-      height: 160px;
-      margin: 0 auto 30px;
+    /* Kontrol Alt Alanı */
+    footer {
+      text-align: center;
+      margin-bottom: 20px;
     }
 
-    .cake {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 180px;
-      height: 100px;
-      background: linear-gradient(to right, #ff477e, #ff758c);
-      border-radius: 16px 16px 8px 8px;
-      box-shadow: 0 10px 25px rgba(255, 71, 126, 0.3);
-    }
-
-    .cake::before {
-      content: '';
-      position: absolute;
-      top: -20px;
-      left: 0;
-      width: 100%;
-      height: 25px;
-      background: #ffffff;
-      border-radius: 16px 16px 10px 10px;
-    }
-
-    .candle {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 16px;
-      height: 45px;
-      background: repeating-linear-gradient(45deg, #fff, #fff 8px, #3a86ff 8px, #3a86ff 16px);
-      border-radius: 4px;
-      z-index: 2;
-    }
-
-    .flame {
-      position: absolute;
-      top: -22px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 18px;
-      height: 26px;
-      background: radial-gradient(circle, #ffea00 20%, #ff4800 70%, transparent 100%);
-      border-radius: 50% 50% 35% 35%;
-      box-shadow: 0 0 20px #ffea00, 0 0 40px #ff4800;
-      animation: flicker 0.6s infinite alternate ease-in-out;
-      transition: opacity 0.5s ease;
-    }
-
-    .flame.off {
-      opacity: 0 !important;
-      animation: none !important;
-    }
-
-    .smoke {
-      position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 8px;
-      height: 20px;
-      background: rgba(200, 200, 200, 0.6);
-      border-radius: 50%;
-      filter: blur(4px);
-      opacity: 0;
-      transition: all 1s ease;
-    }
-
-    .smoke.active {
-      animation: rise 2s forwards;
-    }
-
-    @keyframes flicker {
-      0% { transform: translateX(-50%) scale(1) rotate(-2deg); }
-      100% { transform: translateX(-50%) scale(1.15) rotate(2deg); }
-    }
-
-    @keyframes rise {
-      0% { opacity: 0.8; transform: translateX(-50%) translateY(0) scale(1); }
-      100% { opacity: 0; transform: translateX(-50%) translateY(-50px) scale(3); }
-    }
-
-    /* Üfleme Butonu ve Durum Mesajları */
-    .action-btn {
-      background: linear-gradient(45deg, #ff477e, #ffaa00);
+    .btn-blow {
+      background: linear-gradient(135deg, #ff477e, #ffaa00);
       border: none;
       color: white;
-      padding: 14px 28px;
-      font-size: 1rem;
+      padding: 16px 36px;
+      font-size: 1.1rem;
       font-weight: 700;
       border-radius: 50px;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 10px 20px rgba(2ff, 71, 126, 0.4);
+      box-shadow: 0 10px 30px rgba(255, 71, 126, 0.4);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .action-btn:hover {
-      transform: translateY(-2deg);
-      box-shadow: 0 15px 25px rgba(2ff, 71, 126, 0.6);
+    .btn-blow:hover {
+      transform: scale(1.05) translateY(-3px);
+      box-shadow: 0 15px 40px rgba(255, 71, 126, 0.6);
     }
 
-    .action-btn:disabled {
-      background: #4a4d68;
+    .btn-blow:disabled {
+      background: rgba(255, 255, 255, 0.1);
+      color: #64748b;
       box-shadow: none;
       cursor: not-allowed;
+      transform: none;
     }
 
-    .birthday-card {
-      display: none;
-      margin-top: 25px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      border: 1px dashed var(--gold-color);
-      animation: fadeIn 1s ease forwards;
+    /* Mektup Kartı */
+    .letter-card {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      opacity: 0;
+      pointer-events: none;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      padding: 36px;
+      border-radius: 24px;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 20;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .letter-card.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .letter-card h2 {
+      color: var(--gold);
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .letter-card p {
+      color: #cbd5e1;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .hint-mic {
+      font-size: 0.8rem;
+      color: #ffaa00;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1 id="title">Doğum Gününe Kalan Süre</h1>
-    <p class="subtitle" id="subtitle">9 Kasım için büyük geri sayım başladı!</p>
+  <!-- Three.js Canvas -->
+  <div id="webgl-container"></div>
 
-    <!-- Geri Sayım Kutusu -->
-    <div class="countdown-grid" id="countdown-grid">
-      <div class="time-box">
-        <span class="time-value" id="days">00</span>
-        <span class="time-label">Gün</span>
-      </div>
-      <div class="time-box">
-        <span class="time-value" id="hours">00</span>
-        <span class="time-label">Saat</span>
-      </div>
-      <div class="time-box">
-        <span class="time-value" id="minutes">00</span>
-        <span class="time-label">Dakika</span>
-      </div>
-      <div class="time-box">
-        <span class="time-value" id="seconds">00</span>
-        <span class="time-label">Saniye</span>
-      </div>
-    </div>
+  <!-- Arayüz -->
+  <div class="ui-layer">
+    <header class="interactive">
+      <h1 id="main-title">Doğum Gününe Kalan Süre</h1>
+      <p class="sub" id="sub-title">9 Kasım büyük sürprizi için geri sayım!</p>
 
-    <!-- Pasta ve Mum -->
-    <div class="cake-wrapper">
-      <div class="candle">
-        <div class="flame" id="flame"></div>
-        <div class="smoke" id="smoke"></div>
+      <div class="countdown-bar" id="countdown">
+        <div class="time-box"><span class="num" id="days">00</span><span class="lbl">Gün</span></div>
+        <div class="time-box"><span class="num" id="hours">00</span><span class="lbl">Saat</span></div>
+        <div class="time-box"><span class="num" id="mins">00</span><span class="lbl">Dak</span></div>
+        <div class="time-box"><span class="num" id="secs">00</span><span class="lbl">Sn</span></div>
       </div>
-      <div class="cake"></div>
-    </div>
+    </header>
 
-    <!-- Etkileşim Butonu -->
-    <button class="action-btn" id="blow-btn" disabled>9 Kasım'da Mum Söndürme Açılacak!</button>
+    <footer class="interactive">
+      <button class="btn-blow" id="blow-btn" disabled>9 Kasım'da Mum Söndürme Açılacak!</button>
+      <div class="hint-mic" id="mic-hint" style="display: none;">🎤 İstersen mikrofona canlı üfleyebilirsin!</div>
+    </footer>
+  </div>
 
-    <!-- Özel Doğum Günü Mesaj Alanı -->
-    <div class="birthday-card" id="birthday-card">
-      <h2 style="color: var(--gold-color); margin-bottom: 10px;">🎉 İYİ Kİ DOĞDUN SEVGİLİM! 🎉</h2>
-      <p style="line-height: 1.6; color: #e2e8f0;">
-        Hayatıma kattığın tüm güzellikler ve neşen için teşekkür ederim. Yeni yaşın sana en büyük mutlulukları getirsin. Seni çok seviyorum! ❤️
-      </p>
-    </div>
+  <!-- Sürpriz Mektup -->
+  <div class="letter-card" id="letter">
+    <h2>🎂 İYİ Kİ DOĞDUN SEVGİLİM! 🎉</h2>
+    <p>
+      Yeni yaşın sana tüm güzellikleri, neşeyle dolu anları ve beraber yazacağımız harika hatıraları getirsin. İyi ki hayatımdasın, seni çok seviyorum! ❤️
+    </p>
   </div>
 
   <script>
-    // --- HEDEF TARİH AYARI ---
-    // Her yılın 9 Kasım tarihini otomatik hedefler
+    // --- 1. GERİ SAYIM & TARİH MANTIĞI ---
     function getTargetDate() {
       const now = new Date();
       let year = now.getFullYear();
-      let target = new Date(year, 10, 9, 0, 0, 0); // 10 = Kasım (0 tabanlı ay)
-      
-      // Eğer bu yılın 9 Kasım'ı geçtiyse sonraki yıla kurar
+      let target = new Date(year, 10, 9, 0, 0, 0); // 10 = Kasım (0 tabanlı)
       if (now.getTime() > target.getTime() + (24 * 60 * 60 * 1000)) {
         target = new Date(year + 1, 10, 9, 0, 0, 0);
       }
@@ -287,27 +241,24 @@
     const targetDate = getTargetDate();
     let isBirthday = false;
 
-    // Geri Sayım Mantığı
     function updateCountdown() {
       const now = new Date();
       const diff = targetDate - now;
+      const isToday = (now.getMonth() === 10 && now.getDate() === 9);
 
-      // 9 Kasım Günü Geldi Mi? (Tüm gün boyunca doğum günü modu aktif kalır)
-      const isTodayBirthday = (now.getMonth() === 10 && now.getDate() === 9);
-
-      if (isTodayBirthday || diff <= 0) {
+      if (isToday || diff <= 0) {
         isBirthday = true;
-        document.getElementById('title').innerText = "🎂 BUGÜN SENİN DOĞUM GÜNÜN! 🎂";
-        document.getElementById('subtitle').innerText = "Aşağıdaki butona basarak veya mikrofona üfleyerek mumunu söndür!";
-        document.getElementById('countdown-grid').style.display = "none";
+        document.getElementById('main-title').innerText = "🎂 BUGÜN SENİN DOĞUM GÜNÜN! 🎂";
+        document.getElementById('sub-title').innerText = "Pastadaki mumu üfle ve dileğini tut!";
+        document.getElementById('countdown').style.display = "none";
         
-        const blowBtn = document.getElementById('blow-btn');
-        blowBtn.disabled = false;
-        blowBtn.innerText = "💨 Mumu Üfle!";
+        const btn = document.getElementById('blow-btn');
+        btn.disabled = false;
+        btn.innerText = "💨 Mumu Üfle!";
+        document.getElementById('mic-hint').style.display = "block";
         return;
       }
 
-      // Zaman Hesaplamaları
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -315,39 +266,202 @@
 
       document.getElementById('days').innerText = String(d).padStart(2, '0');
       document.getElementById('hours').innerText = String(h).padStart(2, '0');
-      document.getElementById('minutes').innerText = String(m).padStart(2, '0');
-      document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+      document.getElementById('mins').innerText = String(m).padStart(2, '0');
+      document.getElementById('secs').innerText = String(s).padStart(2, '0');
     }
 
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // Mum Söndürme Mantığı (Buton ve Mikrofon Desteği)
+
+    // --- 2. THREE.JS 3D SAHNE & DİNAMİK EFEKTLER ---
+    const container = document.getElementById('webgl-container');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x070913, 0.05);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 3.5, 7);
+    camera.lookAt(0, 0.8, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    // Işıklandırma
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffe6a7, 0.8);
+    dirLight.position.set(5, 10, 7);
+    scene.add(dirLight);
+
+    // Mum Alev Nokta Işığı (Canlı Turuncu Işık)
+    const flameLight = new THREE.PointLight(0xff7b00, 2, 8);
+    flameLight.position.set(0, 1.8, 0);
+    scene.add(flameLight);
+
+    // 3D Pasta Grubu
+    const cakeGroup = new THREE.Group();
+
+    // Alt Tabuk (Plate)
+    const plateGeo = new THREE.CylinderGeometry(2.2, 2.4, 0.1, 64);
+    const plateMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.8 });
+    const plate = new THREE.Mesh(plateGeo, plateMat);
+    plate.position.y = -0.05;
+    cakeGroup.add(plate);
+
+    // Pastanın Alt Katı
+    const cakeBottomGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.9, 64);
+    const cakeBottomMat = new THREE.MeshStandardMaterial({ color: 0xff477e, roughness: 0.3 });
+    const cakeBottom = new THREE.Mesh(cakeBottomGeo, cakeBottomMat);
+    cakeBottom.position.y = 0.45;
+    cakeGroup.add(cakeBottom);
+
+    // Pastanın Üst Katı (Krema)
+    const cakeTopGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.7, 64);
+    const cakeTopMat = new THREE.MeshStandardMaterial({ color: 0xfff0f5, roughness: 0.2 });
+    const cakeTop = new THREE.Mesh(cakeTopGeo, cakeTopMat);
+    cakeTop.position.y = 1.25;
+    cakeGroup.add(cakeTop);
+
+    // 3D Mum
+    const candleGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.5, 32);
+    const candleMat = new THREE.MeshStandardMaterial({ color: 0x3a86ff });
+    const candle = new THREE.Mesh(candleGeo, candleMat);
+    candle.position.y = 1.85;
+    cakeGroup.add(candle);
+
+    // 3D Canlı Mum Alevi
+    const flameGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    flameGeo.scale(1, 2.2, 1);
+    const flameMat = new THREE.MeshBasicMaterial({ color: 0xffb703 });
+    const flame = new THREE.Mesh(flameGeo, flameMat);
+    flame.position.y = 2.18;
+    cakeGroup.add(flame);
+
+    // Arka Plan 3D Yıldızlar / Parçacıklar
+    const particlesGeo = new THREE.BufferGeometry();
+    const particleCount = 200;
+    const posArray = new Float32Array(particleCount * 3);
+
+    for(let i=0; i<particleCount*3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 15;
+    }
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMat = new THREE.PointsMaterial({ size: 0.03, color: 0xffbe0b, transparent: true, opacity: 0.8 });
+    const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+    scene.add(particlesMesh);
+
+    scene.add(cakeGroup);
+
+    // Duman Parçacık Sistemi (Alev sönünce çıkacak)
+    let smokeParticles = [];
+    let isBlown = false;
+
+    function createSmoke() {
+      for(let i=0; i<15; i++) {
+        const geo = new THREE.SphereGeometry(0.03 + Math.random()*0.02, 8, 8);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.6 });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(0, 2.15, 0);
+        mesh.userData = {
+          vx: (Math.random() - 0.5) * 0.01,
+          vy: 0.015 + Math.random() * 0.01,
+          vz: (Math.random() - 0.5) * 0.01,
+          life: 1.0
+        };
+        smokeParticles.push(mesh);
+        scene.add(mesh);
+      }
+    }
+
+    // Fare Etkileşimi (Pasta 3D Takip Eder)
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 0.8;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 0.5;
+    });
+
+    // Render Döngüsü (Animasyon)
+    let clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsedTime = clock.getElapsedTime();
+
+      // Pastanın Yumuşak Dönüşü
+      cakeGroup.rotation.y = elapsedTime * 0.3 + mouseX;
+      cakeGroup.rotation.x = mouseY * 0.2;
+
+      // Alev Sallanma Efekti
+      if (!isBlown) {
+        flame.scale.x = 1 + Math.sin(elapsedTime * 12) * 0.1;
+        flame.scale.z = 1 + Math.cos(elapsedTime * 10) * 0.1;
+        flameLight.intensity = 2 + Math.sin(elapsedTime * 15) * 0.5;
+      }
+
+      // Duman Hareketi
+      smokeParticles.forEach((p, index) => {
+        p.position.x += p.userData.vx;
+        p.position.y += p.userData.vy;
+        p.position.z += p.userData.vz;
+        p.userData.life -= 0.01;
+        p.material.opacity = p.userData.life * 0.6;
+        if(p.userData.life <= 0) {
+          scene.remove(p);
+          smokeParticles.splice(index, 1);
+        }
+      });
+
+      // Yıldızların Yavaş Dönüşü
+      particlesMesh.rotation.y = elapsedTime * 0.05;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Ekran Boyutu Değişimi
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+
+    // --- 3. MUM SÖNDÜRME VE KUTLAMA KODLARI ---
     const blowBtn = document.getElementById('blow-btn');
-    const flame = document.getElementById('flame');
-    const smoke = document.getElementById('smoke');
-    const birthdayCard = document.getElementById('birthday-card');
+    const letterCard = document.getElementById('letter');
 
     function blowOutCandle() {
-      flame.classList.add('off');
-      smoke.classList.add('active');
-      blowBtn.style.display = 'none';
-      birthdayCard.style.display = 'block';
+      if (isBlown) return;
+      isBlown = true;
 
-      // Konfeti Yağmuru Patlat
+      // Alev ve Işığı Kapat
+      flame.visible = false;
+      flameLight.intensity = 0;
+      createSmoke();
+
+      // Butonu Gizle, Mektubu Göster
+      blowBtn.style.display = 'none';
+      document.getElementById('mic-hint').style.display = 'none';
+      letterCard.classList.add('active');
+
+      // 3D Konfeti Patlaması
       confetti({
-        particleCount: 150,
-        spread: 90,
-        origin: { y: 0.6 }
+        particleCount: 180,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#ff477e', '#ffb703', '#3a86ff', '#ffffff']
       });
     }
 
     blowBtn.addEventListener('click', blowOutCandle);
 
-    // Mikrofona Üfleme Algılama (Seçeneği)
+    // Canlı Mikrofon Üfleme Sensörü
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       blowBtn.addEventListener('click', async () => {
-        if (!isBirthday) return;
+        if (!isBirthday || isBlown) return;
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -359,6 +473,7 @@
           const dataArray = new Uint8Array(bufferLength);
 
           function checkVolume() {
+            if(isBlown) return;
             analyser.getByteFrequencyData(dataArray);
             let sum = 0;
             for (let i = 0; i < bufferLength; i++) {
@@ -366,8 +481,8 @@
             }
             let average = sum / bufferLength;
 
-            // Rüzgar / Üfleme Sesi Eşiği (Ses seviyesi 50'yi geçerse mumu söndürür)
-            if (average > 50) {
+            // Rüzgar / Üfleme Sesi Eşiği
+            if (average > 45) {
               blowOutCandle();
               stream.getTracks().forEach(track => track.stop());
             } else {
@@ -376,7 +491,7 @@
           }
           checkVolume();
         } catch (err) {
-          // Mikrofon izni verilmezse tıklamayla sönmeye devam eder
+          // Mikrofon izni reddedilirse normal tıklama çalışmaya devam eder
         }
       });
     }
