@@ -3,8 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Özel Sürpriz</title>
   
+  <!-- LINK PREVIEW (SOSYAL MEDYA SÜRPRİZ GİZLEME ETIKETLERI) -->
+  <title>Özel Sürpriz</title>
+  <meta name="description" content="Senin için küçük bir sürpriz hazırlanıyor...">
+  
+  <!-- Open Graph / WhatsApp / Discord / Instagram Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Özel Sürpriz">
+  <meta property="og:description" content="Senin için küçük bir sürpriz hazırlanıyor...">
+  
+  <!-- Twitter Preview -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Özel Sürpriz">
+  <meta name="twitter:description" content="Senin için küçük bir sürpriz hazırlanıyor...">
+
   <!-- Three.js Library & Confetti -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -241,13 +254,13 @@
     dirLight.position.set(5, 10, 7);
     scene.add(dirLight);
 
-    const mainFlameLight = new THREE.PointLight(0xff7b00, 0, 8); // Başta ışık kapalı
+    const mainFlameLight = new THREE.PointLight(0xff7b00, 0, 8);
     mainFlameLight.position.set(0, 2, 0);
     scene.add(mainFlameLight);
 
     // 3D Pasta Grubu (Başlangıçta ekranın altında gizli)
     const cakeGroup = new THREE.Group();
-    cakeGroup.position.y = -6; // Ekranın altında gizli durur
+    cakeGroup.position.y = -6;
 
     // Tabak
     const plateGeo = new THREE.CylinderGeometry(2.2, 2.4, 0.1, 64);
@@ -270,7 +283,7 @@
     cakeTop.position.y = 1.25;
     cakeGroup.add(cakeTop);
 
-    // 4 ADET DÜZENLİ ORANTILI MUM (Kare Düzeni)
+    // 4 ADET DÜZENLİ MUM
     const candlesData = [];
     const candlePositions = [
       { x: -0.3, z: -0.3 },
@@ -280,14 +293,12 @@
     ];
 
     candlePositions.forEach(pos => {
-      // Mum Gövdesi
       const candleGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.45, 32);
       const candleMat = new THREE.MeshStandardMaterial({ color: 0x3a86ff });
       const candleMesh = new THREE.Mesh(candleGeo, candleMat);
       candleMesh.position.set(pos.x, 1.82, pos.z);
       cakeGroup.add(candleMesh);
 
-      // Mum Alevi
       const flameGeo = new THREE.SphereGeometry(0.065, 16, 16);
       flameGeo.scale(1, 2.2, 1);
       const flameMat = new THREE.MeshBasicMaterial({ color: 0xffb703 });
@@ -298,7 +309,7 @@
       candlesData.push({ flame: flameMesh, pos: pos });
     });
 
-    // Yıldızlar / Parçacıklar (Her zaman görünür)
+    // Yıldızlar
     const particlesGeo = new THREE.BufferGeometry();
     const particleCount = 200;
     const posArray = new Float32Array(particleCount * 3);
@@ -332,7 +343,9 @@
       cakeAnimatedIn = true;
       isBirthday = true;
 
-      // Arayüz Değişimi
+      // Sekme Başlığını Sadece 9 Kasım'da Değiştir
+      document.title = "🎂 İyi Ki Doğdun!";
+
       document.getElementById('main-title').innerText = "🎂 İYİ Kİ DOĞDUN SEVGİLİM! 🎂";
       document.getElementById('sub-title').innerText = "Pastadaki mumları üfle ve dileğini tut!";
       document.getElementById('countdown').style.display = "none";
@@ -402,17 +415,15 @@
       requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Pastanın Yumuşak Yükselme Animasyonu (9 Kasım Günü Gelince)
       if (cakeAnimatedIn) {
         if (cakeGroup.position.y < 0) {
-          cakeGroup.position.y += (0 - cakeGroup.position.y) * 0.04; // Smooth lerp yükseliş
+          cakeGroup.position.y += (0 - cakeGroup.position.y) * 0.04;
         }
       }
 
       cakeGroup.rotation.y = elapsedTime * 0.3 + mouseX;
       cakeGroup.rotation.x = mouseY * 0.2;
 
-      // Mum Alevlerinin Titremesi
       if (!isBlown && cakeAnimatedIn) {
         candlesData.forEach((c, idx) => {
           c.flame.scale.x = 1 + Math.sin(elapsedTime * 12 + idx) * 0.1;
@@ -421,7 +432,6 @@
         mainFlameLight.intensity = 2.5 + Math.sin(elapsedTime * 15) * 0.5;
       }
 
-      // Duman Hareketi
       smokeParticles.forEach((p, index) => {
         p.position.x += p.userData.vx;
         p.position.y += p.userData.vy;
@@ -454,16 +464,13 @@
       if (isBlown) return;
       isBlown = true;
 
-      // Alevleri Söndür
       candlesData.forEach(c => c.flame.visible = false);
       mainFlameLight.intensity = 0;
       createSmokeForCandles();
 
-      // Mektubu Göster
       blowBtn.style.display = 'none';
       letterCard.classList.add('active');
 
-      // Konfeti Patlaması
       confetti({
         particleCount: 180,
         spread: 100,
