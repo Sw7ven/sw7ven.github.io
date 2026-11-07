@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- LINK PREVIEW (SOSYAL MEDYA SÜRPRİZ GİZLEME ETIKETLERI) -->
+  <!-- GİZLİ SOSYAL MEDYA META ETIKETLERI -->
   <title>Özel Sürpriz</title>
   <meta name="description" content="Senin için küçük bir sürpriz hazırlanıyor...">
   
-  <!-- Open Graph / WhatsApp / Discord / Instagram Preview -->
+  <!-- Open Graph / Instagram / WhatsApp / Discord -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Özel Sürpriz">
   <meta property="og:description" content="Senin için küçük bir sürpriz hazırlanıyor...">
   
-  <!-- Twitter Preview -->
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Özel Sürpriz">
   <meta name="twitter:description" content="Senin için küçük bir sürpriz hazırlanıyor...">
@@ -220,16 +220,14 @@
     </footer>
   </div>
 
-  <!-- Sürpriz Mektup -->
-  <div class="letter-card" id="letter">
-    <h2>🎂 İYİ Kİ DOĞDUN! 🎉</h2>
-    <p>
-      İyiki doğdun güzelim diğer yaş günlerinde yanında olamasamda şuan yanındayım seni çok seviyorum bebeğim hep beraber nice mutlu yaşlara ❤️
-    </p>
-  </div>
+  <!-- Sürpriz Mektup Alanı (İçeriği JS dinamik ekler) -->
+  <div class="letter-card" id="letter"></div>
 
   <script>
     let isBirthday = false;
+
+    // Sürpriz Mesajı (Sosyal medya botları JS çalıştırmadığı için bunu göremez)
+    const SECRET_MESSAGE = "İyiki doğdun güzelim diğer yaş günlerinde yanında olamasamda şuan yanındayım seni çok seviyorum bebeğim hep beraber nice mutlu yaşlara ❤️";
 
     // --- 1. THREE.JS 3D SAHNE KURULUMU ---
     const container = document.getElementById('webgl-container');
@@ -258,7 +256,7 @@
     mainFlameLight.position.set(0, 2, 0);
     scene.add(mainFlameLight);
 
-    // 3D Pasta Grubu (Başlangıçta ekranın altında gizli)
+    // 3D Pasta Grubu
     const cakeGroup = new THREE.Group();
     cakeGroup.position.y = -6;
 
@@ -343,7 +341,6 @@
       cakeAnimatedIn = true;
       isBirthday = true;
 
-      // Sekme Başlığını Sadece 9 Kasım'da Değiştir
       document.title = "🎂 İyi Ki Doğdun!";
 
       document.getElementById('main-title').innerText = "🎂 İYİ Kİ DOĞDUN SEVGİLİM! 🎂";
@@ -469,6 +466,12 @@
       createSmokeForCandles();
 
       blowBtn.style.display = 'none';
+
+      // Dinamik Mesaj Yükleme
+      letterCard.innerHTML = `
+        <h2>🎂 İYİ Kİ DOĞDUN! 🎉</h2>
+        <p>${SECRET_MESSAGE}</p>
+      `;
       letterCard.classList.add('active');
 
       confetti({
