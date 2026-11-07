@@ -1,1 +1,385 @@
-<h1>Doğum Günün Kutlu Olsun!</h1>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>İyi Ki Doğdun!</title>
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0d0f17;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --accent-color: #ff477e;
+      --gold-color: #ffb703;
+      --text-color: #ffffff;
+      --subtext-color: #a0a5c0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #1a1c2e 0%, #0d0f17 100%);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 40px 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #ff477e, #ffaa00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    p.subtitle {
+      color: var(--subtext-color);
+      font-size: 1.05rem;
+      margin-bottom: 30px;
+    }
+
+    /* Geri Sayım Kartları */
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+
+    .time-box {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 16px 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .time-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--gold-color);
+      display: block;
+    }
+
+    .time-label {
+      font-size: 0.75rem;
+      color: var(--subtext-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* 2D/3D Pasta & Mum Animasyonu */
+    .cake-wrapper {
+      position: relative;
+      width: 200px;
+      height: 160px;
+      margin: 0 auto 30px;
+    }
+
+    .cake {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 100px;
+      background: linear-gradient(to right, #ff477e, #ff758c);
+      border-radius: 16px 16px 8px 8px;
+      box-shadow: 0 10px 25px rgba(255, 71, 126, 0.3);
+    }
+
+    .cake::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 0;
+      width: 100%;
+      height: 25px;
+      background: #ffffff;
+      border-radius: 16px 16px 10px 10px;
+    }
+
+    .candle {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 45px;
+      background: repeating-linear-gradient(45deg, #fff, #fff 8px, #3a86ff 8px, #3a86ff 16px);
+      border-radius: 4px;
+      z-index: 2;
+    }
+
+    .flame {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 26px;
+      background: radial-gradient(circle, #ffea00 20%, #ff4800 70%, transparent 100%);
+      border-radius: 50% 50% 35% 35%;
+      box-shadow: 0 0 20px #ffea00, 0 0 40px #ff4800;
+      animation: flicker 0.6s infinite alternate ease-in-out;
+      transition: opacity 0.5s ease;
+    }
+
+    .flame.off {
+      opacity: 0 !important;
+      animation: none !important;
+    }
+
+    .smoke {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 20px;
+      background: rgba(200, 200, 200, 0.6);
+      border-radius: 50%;
+      filter: blur(4px);
+      opacity: 0;
+      transition: all 1s ease;
+    }
+
+    .smoke.active {
+      animation: rise 2s forwards;
+    }
+
+    @keyframes flicker {
+      0% { transform: translateX(-50%) scale(1) rotate(-2deg); }
+      100% { transform: translateX(-50%) scale(1.15) rotate(2deg); }
+    }
+
+    @keyframes rise {
+      0% { opacity: 0.8; transform: translateX(-50%) translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-50px) scale(3); }
+    }
+
+    /* Üfleme Butonu ve Durum Mesajları */
+    .action-btn {
+      background: linear-gradient(45deg, #ff477e, #ffaa00);
+      border: none;
+      color: white;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 10px 20px rgba(2ff, 71, 126, 0.4);
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2deg);
+      box-shadow: 0 15px 25px rgba(2ff, 71, 126, 0.6);
+    }
+
+    .action-btn:disabled {
+      background: #4a4d68;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .birthday-card {
+      display: none;
+      margin-top: 25px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      border: 1px dashed var(--gold-color);
+      animation: fadeIn 1s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1 id="title">Doğum Gününe Kalan Süre</h1>
+    <p class="subtitle" id="subtitle">9 Kasım için büyük geri sayım başladı!</p>
+
+    <!-- Geri Sayım Kutusu -->
+    <div class="countdown-grid" id="countdown-grid">
+      <div class="time-box">
+        <span class="time-value" id="days">00</span>
+        <span class="time-label">Gün</span>
+      </div>
+      <div class="time-box">
+        <span class="time-value" id="hours">00</span>
+        <span class="time-label">Saat</span>
+      </div>
+      <div class="time-box">
+        <span class="time-value" id="minutes">00</span>
+        <span class="time-label">Dakika</span>
+      </div>
+      <div class="time-box">
+        <span class="time-value" id="seconds">00</span>
+        <span class="time-label">Saniye</span>
+      </div>
+    </div>
+
+    <!-- Pasta ve Mum -->
+    <div class="cake-wrapper">
+      <div class="candle">
+        <div class="flame" id="flame"></div>
+        <div class="smoke" id="smoke"></div>
+      </div>
+      <div class="cake"></div>
+    </div>
+
+    <!-- Etkileşim Butonu -->
+    <button class="action-btn" id="blow-btn" disabled>9 Kasım'da Mum Söndürme Açılacak!</button>
+
+    <!-- Özel Doğum Günü Mesaj Alanı -->
+    <div class="birthday-card" id="birthday-card">
+      <h2 style="color: var(--gold-color); margin-bottom: 10px;">🎉 İYİ Kİ DOĞDUN SEVGİLİM! 🎉</h2>
+      <p style="line-height: 1.6; color: #e2e8f0;">
+        Hayatıma kattığın tüm güzellikler ve neşen için teşekkür ederim. Yeni yaşın sana en büyük mutlulukları getirsin. Seni çok seviyorum! ❤️
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // --- HEDEF TARİH AYARI ---
+    // Her yılın 9 Kasım tarihini otomatik hedefler
+    function getTargetDate() {
+      const now = new Date();
+      let year = now.getFullYear();
+      let target = new Date(year, 10, 9, 0, 0, 0); // 10 = Kasım (0 tabanlı ay)
+      
+      // Eğer bu yılın 9 Kasım'ı geçtiyse sonraki yıla kurar
+      if (now.getTime() > target.getTime() + (24 * 60 * 60 * 1000)) {
+        target = new Date(year + 1, 10, 9, 0, 0, 0);
+      }
+      return target;
+    }
+
+    const targetDate = getTargetDate();
+    let isBirthday = false;
+
+    // Geri Sayım Mantığı
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetDate - now;
+
+      // 9 Kasım Günü Geldi Mi? (Tüm gün boyunca doğum günü modu aktif kalır)
+      const isTodayBirthday = (now.getMonth() === 10 && now.getDate() === 9);
+
+      if (isTodayBirthday || diff <= 0) {
+        isBirthday = true;
+        document.getElementById('title').innerText = "🎂 BUGÜN SENİN DOĞUM GÜNÜN! 🎂";
+        document.getElementById('subtitle').innerText = "Aşağıdaki butona basarak veya mikrofona üfleyerek mumunu söndür!";
+        document.getElementById('countdown-grid').style.display = "none";
+        
+        const blowBtn = document.getElementById('blow-btn');
+        blowBtn.disabled = false;
+        blowBtn.innerText = "💨 Mumu Üfle!";
+        return;
+      }
+
+      // Zaman Hesaplamaları
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById('days').innerText = String(d).padStart(2, '0');
+      document.getElementById('hours').innerText = String(h).padStart(2, '0');
+      document.getElementById('minutes').innerText = String(m).padStart(2, '0');
+      document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // Mum Söndürme Mantığı (Buton ve Mikrofon Desteği)
+    const blowBtn = document.getElementById('blow-btn');
+    const flame = document.getElementById('flame');
+    const smoke = document.getElementById('smoke');
+    const birthdayCard = document.getElementById('birthday-card');
+
+    function blowOutCandle() {
+      flame.classList.add('off');
+      smoke.classList.add('active');
+      blowBtn.style.display = 'none';
+      birthdayCard.style.display = 'block';
+
+      // Konfeti Yağmuru Patlat
+      confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: 0.6 }
+      });
+    }
+
+    blowBtn.addEventListener('click', blowOutCandle);
+
+    // Mikrofona Üfleme Algılama (Seçeneği)
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      blowBtn.addEventListener('click', async () => {
+        if (!isBirthday) return;
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const analyser = audioContext.createAnalyser();
+          const microphone = audioContext.createMediaStreamSource(stream);
+          microphone.connect(analyser);
+          analyser.fftSize = 256;
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          function checkVolume() {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+              sum += dataArray[i];
+            }
+            let average = sum / bufferLength;
+
+            // Rüzgar / Üfleme Sesi Eşiği (Ses seviyesi 50'yi geçerse mumu söndürür)
+            if (average > 50) {
+              blowOutCandle();
+              stream.getTracks().forEach(track => track.stop());
+            } else {
+              requestAnimationFrame(checkVolume);
+            }
+          }
+          checkVolume();
+        } catch (err) {
+          // Mikrofon izni verilmezse tıklamayla sönmeye devam eder
+        }
+      });
+    }
+  </script>
+</body>
+</html>
