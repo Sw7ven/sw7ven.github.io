@@ -66,6 +66,7 @@
       border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      transition: all 0.5s ease;
     }
 
     h1 {
@@ -190,7 +191,6 @@
   <!-- Arayüz -->
   <div class="ui-layer">
     <header class="interactive">
-      <!-- Sürpriz Karşılama Başlığı -->
       <h1 id="main-title">Senin İçin Küçük Bir Sürpriz...</h1>
       <p class="sub" id="sub-title">Büyük an için geri sayım devam ediyor!</p>
 
@@ -216,53 +216,9 @@
   </div>
 
   <script>
-    // --- 1. GERİ SAYIM MANTIĞI ---
-    function getTargetDate() {
-      const now = new Date();
-      let year = now.getFullYear();
-      let target = new Date(year, 10, 9, 0, 0, 0); // 10 = Kasım
-      if (now.getTime() > target.getTime() + (24 * 60 * 60 * 1000)) {
-        target = new Date(year + 1, 10, 9, 0, 0, 0);
-      }
-      return target;
-    }
-
-    const targetDate = getTargetDate();
     let isBirthday = false;
 
-    function updateCountdown() {
-      const now = new Date();
-      const diff = targetDate - now;
-      const isToday = (now.getMonth() === 10 && now.getDate() === 9);
-
-      if (isToday || diff <= 0) {
-        isBirthday = true;
-        document.getElementById('main-title').innerText = "🎂 İYİ Kİ DOĞDUN SEVGİLİM! 🎂";
-        document.getElementById('sub-title').innerText = "Pastadaki mumları üfle ve dileğini tut!";
-        document.getElementById('countdown').style.display = "none";
-        
-        const btn = document.getElementById('blow-btn');
-        btn.disabled = false;
-        btn.innerText = "💨 Mumları Üfle!";
-        return;
-      }
-
-      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-      document.getElementById('days').innerText = String(d).padStart(2, '0');
-      document.getElementById('hours').innerText = String(h).padStart(2, '0');
-      document.getElementById('mins').innerText = String(m).padStart(2, '0');
-      document.getElementById('secs').innerText = String(s).padStart(2, '0');
-    }
-
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
-
-
-    // --- 2. THREE.JS 3D SAHNE & ÇOKLU MUM EFEKTİ ---
+    // --- 1. THREE.JS 3D SAHNE KURULUMU ---
     const container = document.getElementById('webgl-container');
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x070913, 0.05);
@@ -285,13 +241,13 @@
     dirLight.position.set(5, 10, 7);
     scene.add(dirLight);
 
-    // Pastadan Genel Mum Işığı
-    const mainFlameLight = new THREE.PointLight(0xff7b00, 2.5, 8);
+    const mainFlameLight = new THREE.PointLight(0xff7b00, 0, 8); // Başta ışık kapalı
     mainFlameLight.position.set(0, 2, 0);
     scene.add(mainFlameLight);
 
-    // 3D Pasta Grubu
+    // 3D Pasta Grubu (Başlangıçta ekranın altında gizli)
     const cakeGroup = new THREE.Group();
+    cakeGroup.position.y = -6; // Ekranın altında gizli durur
 
     // Tabak
     const plateGeo = new THREE.CylinderGeometry(2.2, 2.4, 0.1, 64);
@@ -300,38 +256,39 @@
     plate.position.y = -0.05;
     cakeGroup.add(plate);
 
-    // Alt Kat
+    // Alt Kat Pasta
     const cakeBottomGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.9, 64);
     const cakeBottomMat = new THREE.MeshStandardMaterial({ color: 0xff477e, roughness: 0.3 });
     const cakeBottom = new THREE.Mesh(cakeBottomGeo, cakeBottomMat);
     cakeBottom.position.y = 0.45;
     cakeGroup.add(cakeBottom);
 
-    // Üst Kat (Krema)
+    // Üst Kat Krema
     const cakeTopGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.7, 64);
     const cakeTopMat = new THREE.MeshStandardMaterial({ color: 0xfff0f5, roughness: 0.2 });
     const cakeTop = new THREE.Mesh(cakeTopGeo, cakeTopMat);
     cakeTop.position.y = 1.25;
     cakeGroup.add(cakeTop);
 
-    // 3 TANE MUM VE ALEV DİZİSİ
+    // 4 ADET DÜZENLİ ORANTILI MUM (Kare Düzeni)
     const candlesData = [];
     const candlePositions = [
-      { x: -0.35, z: 0 },
-      { x: 0, z: 0.25 },
-      { x: 0.35, z: 0 }
+      { x: -0.3, z: -0.3 },
+      { x: 0.3, z: -0.3 },
+      { x: -0.3, z: 0.3 },
+      { x: 0.3, z: 0.3 }
     ];
 
     candlePositions.forEach(pos => {
       // Mum Gövdesi
-      const candleGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.45, 32);
+      const candleGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.45, 32);
       const candleMat = new THREE.MeshStandardMaterial({ color: 0x3a86ff });
       const candleMesh = new THREE.Mesh(candleGeo, candleMat);
       candleMesh.position.set(pos.x, 1.82, pos.z);
       cakeGroup.add(candleMesh);
 
       // Mum Alevi
-      const flameGeo = new THREE.SphereGeometry(0.07, 16, 16);
+      const flameGeo = new THREE.SphereGeometry(0.065, 16, 16);
       flameGeo.scale(1, 2.2, 1);
       const flameMat = new THREE.MeshBasicMaterial({ color: 0xffb703 });
       const flameMesh = new THREE.Mesh(flameGeo, flameMat);
@@ -341,7 +298,7 @@
       candlesData.push({ flame: flameMesh, pos: pos });
     });
 
-    // Yıldızlar
+    // Yıldızlar / Parçacıklar (Her zaman görünür)
     const particlesGeo = new THREE.BufferGeometry();
     const particleCount = 200;
     const posArray = new Float32Array(particleCount * 3);
@@ -355,7 +312,63 @@
 
     scene.add(cakeGroup);
 
-    // Duman Efekti
+
+    // --- 2. CANLI TARİH VE ANİMASYON TETİKLEME ---
+    function getTargetDate() {
+      const now = new Date();
+      let year = now.getFullYear();
+      let target = new Date(year, 10, 9, 0, 0, 0); // 10 = Kasım
+      if (now.getTime() > target.getTime() + (24 * 60 * 60 * 1000)) {
+        target = new Date(year + 1, 10, 9, 0, 0, 0);
+      }
+      return target;
+    }
+
+    const targetDate = getTargetDate();
+    let cakeAnimatedIn = false;
+
+    function triggerBirthdayArrival() {
+      if (cakeAnimatedIn) return;
+      cakeAnimatedIn = true;
+      isBirthday = true;
+
+      // Arayüz Değişimi
+      document.getElementById('main-title').innerText = "🎂 İYİ Kİ DOĞDUN SEVGİLİM! 🎂";
+      document.getElementById('sub-title').innerText = "Pastadaki mumları üfle ve dileğini tut!";
+      document.getElementById('countdown').style.display = "none";
+      
+      const btn = document.getElementById('blow-btn');
+      btn.disabled = false;
+      btn.innerText = "💨 Mumları Üfle!";
+      mainFlameLight.intensity = 2.5;
+    }
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetDate - now;
+      const isToday = (now.getMonth() === 10 && now.getDate() === 9);
+
+      if (isToday || diff <= 0) {
+        triggerBirthdayArrival();
+        return;
+      }
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById('days').innerText = String(d).padStart(2, '0');
+      document.getElementById('hours').innerText = String(h).padStart(2, '0');
+      document.getElementById('mins').innerText = String(m).padStart(2, '0');
+      document.getElementById('secs').innerText = String(s).padStart(2, '0');
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+
+    // --- 3. DUMAN EFEKTİ & RENDER DÖNGÜSÜ ---
     let smokeParticles = [];
     let isBlown = false;
 
@@ -378,24 +391,29 @@
       });
     }
 
-    // Fare Takibi
     let mouseX = 0, mouseY = 0;
     window.addEventListener('mousemove', (e) => {
       mouseX = (e.clientX / window.innerWidth - 0.5) * 0.8;
       mouseY = (e.clientY / window.innerHeight - 0.5) * 0.5;
     });
 
-    // Animasyon Döngüsü
     let clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
+      // Pastanın Yumuşak Yükselme Animasyonu (9 Kasım Günü Gelince)
+      if (cakeAnimatedIn) {
+        if (cakeGroup.position.y < 0) {
+          cakeGroup.position.y += (0 - cakeGroup.position.y) * 0.04; // Smooth lerp yükseliş
+        }
+      }
+
       cakeGroup.rotation.y = elapsedTime * 0.3 + mouseX;
       cakeGroup.rotation.x = mouseY * 0.2;
 
-      // Alevlerin Canlı Titremesi
-      if (!isBlown) {
+      // Mum Alevlerinin Titremesi
+      if (!isBlown && cakeAnimatedIn) {
         candlesData.forEach((c, idx) => {
           c.flame.scale.x = 1 + Math.sin(elapsedTime * 12 + idx) * 0.1;
           c.flame.scale.z = 1 + Math.cos(elapsedTime * 10 + idx) * 0.1;
@@ -428,7 +446,7 @@
     });
 
 
-    // --- 3. MUM SÖNDÜRME VE MEKTUP ---
+    // --- 4. MUM SÖNDÜRME VE MEKTUP ---
     const blowBtn = document.getElementById('blow-btn');
     const letterCard = document.getElementById('letter');
 
@@ -436,12 +454,12 @@
       if (isBlown) return;
       isBlown = true;
 
-      // Tüm Alevleri Söndür ve Duman Çıkar
+      // Alevleri Söndür
       candlesData.forEach(c => c.flame.visible = false);
       mainFlameLight.intensity = 0;
       createSmokeForCandles();
 
-      // Butonu Gizle, Mektubu Aç
+      // Mektubu Göster
       blowBtn.style.display = 'none';
       letterCard.classList.add('active');
 
